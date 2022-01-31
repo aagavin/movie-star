@@ -32,9 +32,7 @@ async def get_media_crew(id: str, db: Session = Depends(get_db)):
 @mediaRouter.get("/media/{id}/principals", tags=["media"])
 async def get_media_principals(id: str, db: Session = Depends(get_db)):
         principals = read.get_title_principals(db, id)
-        print(principals)
         for p in principals:
-                print(p)
                 p.name = read.get_name_basic(db, p.nconst)
         return principals
 
