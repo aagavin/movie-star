@@ -23,17 +23,20 @@ async def get_media_poster(id: str, db: Session = Depends(get_db)):
 
 @mediaRouter.get("/media/{id}/crew", tags=['media'])
 async def get_media_crew(id: str, db: Session = Depends(get_db)):
-        name_cache = {}
         crew = read.get_title_crew(db, id)
-        crew.directors = read.get_name_basic(db, crew.directors.split(','))
-        crew.writers = read.get_name_basic(db, crew.writers.split(','))
+        directors = crew.directors.split(',')
+        writers = crew.writers.split(',')
+        names = read.get_name_basic(db, list({*directors, *writers}))
+        crew.directors = [next(i for i in names if i.nconst == d) for d in directors]
+        crew.writers = [next(i for i in names if i.nconst == w) for w in writers]
         return crew
 
 @mediaRouter.get("/media/{id}/principals", tags=["media"])
 async def get_media_principals(id: str, db: Session = Depends(get_db)):
         principals = read.get_title_principals(db, id)
+        names = read.get_name_basic(db, list({p.nconst for p in principals}))
         for p in principals:
-                p.name = read.get_name_basic(db, p.nconst)
+                p.name = next(n for n in names if n.nconst == p.nconst)
         return principals
 
 @mediaRouter.get("/media/{id}/ratings", tags=["media"])
