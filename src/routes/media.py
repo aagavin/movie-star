@@ -1,5 +1,4 @@
-from ctypes import Union
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response, status, HTTPException
 from sqlalchemy.orm import Session
 
 from src.database import schemas, read
@@ -9,8 +8,11 @@ import httpx
 mediaRouter = APIRouter()
 
 @mediaRouter.get("/media/{id}", tags=['media'])
-async def get_media_by_id(id: str, full: bool | None = False, db: Session = Depends(get_db)):
-        return read.get_title_basic(db, full, id)
+async def get_media_by_id(id: str, full: bool | None = False, response=Response , db: Session = Depends(get_db)):
+        result = read.get_title_basic(db, full, id)
+        if result is None:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No media with id {id}")
+        return result
 
 
 @mediaRouter.get("/media/{id}/poster", tags=["media"])
