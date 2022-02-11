@@ -13,8 +13,6 @@ class ImdbParser(HTMLParser):
         self.posterUrl = ''
         self.isDescription = False
         self.description = ''
-        self.isNextEp = False
-        self.nextEp = ''
 
     def handle_starttag(self, tag, attrs):
         if tag == 'img' and self.posterUrl == '':
@@ -25,19 +23,11 @@ class ImdbParser(HTMLParser):
             for attr in attrs:
                 if attr[0] == 'data-testid' and attr[1].startswith('plot-xl'):
                     self.isDescription = True
-        if tag == 'div' and self.nextEp == '':
-            for attr in attrs:
-                if attr[0] == 'class':
-                    print(attr[1])
-                    # self.isNextEp = True
 
     def handle_data(self, text: str) -> None:
         if self.isDescription:
             self.description = text
             self.isDescription = False
-        if self.isNextEp:
-            self.nextEp = text
-            self.isNextEp = False
 
 
 def get_title_basic(db: Session, full: bool, tconst: str):
