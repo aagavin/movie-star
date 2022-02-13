@@ -1,11 +1,15 @@
-from sqlalchemy.orm import Session
-from typing import Union
+import imp
+import httpx
+from httpx import Response
 from html.parser import HTMLParser
+from typing import Union
+from lxml import html
+from sqlalchemy.orm import Session
 
 from . import models
 
 
-class ImdbParser(HTMLParser):
+class ImdbMediaParser(HTMLParser):
 
     def __init__(self) -> None:
         super().__init__()
@@ -29,6 +33,25 @@ class ImdbParser(HTMLParser):
             self.description = text
             self.isDescription = False
 
+async def get_popular_media(url):
+    pop_media = []
+    async with httpx.AsyncClient() as client:
+        response: Response = await client.get(url)
+        doc = html.fromstring(response.text)
+        pop_list = doc.find_class('lister-list').pop()
+        if pop_list.tag != 'tbody':
+            return {}
+        
+        for row in pop_list.findall('tr'):
+            title_tag = row.find_class('titleColumn').pop().find('a')
+            pop_media.append({
+                "id": title_tag.attrib['href'].split('/')[2],
+                "poster": row.find('.//img').attrib['src'],
+                "title": title_tag.text,
+                "title_cast": title_tag.attrib['title'],
+                "raiting": row.find_class('ratingColumn imdbRating').pop().text_content().strip()
+            })
+    return pop_media
 
 def get_title_basic(db: Session, full: bool, tconst: str):
     if full:
