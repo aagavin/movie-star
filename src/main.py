@@ -4,7 +4,12 @@ from fastapi.responses import UJSONResponse
 from .routes.media import mediaRouter
 
 
-app: FastAPI = FastAPI(default_response_class=UJSONResponse)
+app: FastAPI = FastAPI(
+    name="Movie Star",
+    description="media stuff",
+    version="0.0.1",
+    default_response_class=UJSONResponse
+)
 
 app.include_router(mediaRouter)
 
