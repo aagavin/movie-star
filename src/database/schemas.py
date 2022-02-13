@@ -1,6 +1,4 @@
-from ctypes import Union
 from pydantic import BaseModel
-
 
 class TitleBasicBase(BaseModel):
     tconst: str
