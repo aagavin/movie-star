@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, Response, status, HTTPException
+from enum import Enum
+from typing import Union
+from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from src.database import schemas, read
@@ -7,9 +10,23 @@ import httpx
 
 mediaRouter = APIRouter()
 
+class MediaType(Enum):
+    MOVIE = "movie"
+    TV = "tv"
+
+
+@mediaRouter.get("/media/{type}/popular")
+async def get_popular_media(type: MediaType):
+    base_url = "https://www.imdb.com/chart"
+    if type == MediaType.MOVIE:
+        request_url = f"{base_url}/moviemeter"
+    elif type == MediaType.TV:
+        request_url = f"{base_url}/tvmeter"
+    return await read.get_popular_media(request_url)
+
 
 @mediaRouter.get("/media/{id}", tags=['media'])
-async def get_media_by_id(id: str, full: bool | None = False, response=Response, db: Session = Depends(get_db)):
+async def get_media_by_id(id: str, full: bool | None = False, db: Session = Depends(get_db)):
     result = read.get_title_basic(db, full, id)
     if result is None:
         raise HTTPException(
@@ -19,21 +36,16 @@ async def get_media_by_id(id: str, full: bool | None = False, response=Response,
     return result
 
 
-@mediaRouter.get("/media/{id}/poster", tags=["media"])
-async def get_media_web_data(id: str):
-    return get_media_poster(id)
-
-
 @mediaRouter.get("/media/{id}/webdata", tags=["media"])
-async def get_media_web_data_v2(id: str):
-    return get_media_poster(id)
-
-
-def get_media_poster(id: str):
+async def get_media_web_data(id: str):
     result = httpx.get(f'https://m.imdb.com/title/{id}/')
-    imdbParse = read.ImdbParser()
+    imdbParse = read.ImdbMediaParser()
     imdbParse.feed(result.text)
     return {"posterUrl": imdbParse.posterUrl, "description": imdbParse.description}
+
+@mediaRouter.get("/media/{id}/poster", tags=["media"], response_class=RedirectResponse)
+def get_media_poster(id: str):
+    return f"/media/{id}/webdata"
 
 
 @mediaRouter.get("/media/{id}/crew", tags=['media'])
