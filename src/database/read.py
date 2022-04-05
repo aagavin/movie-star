@@ -45,10 +45,10 @@ async def get_popular_media(url):
         for row in pop_list.findall('tr'):
             title_tag = row.find_class('titleColumn').pop().find('a')
             pop_media.append({
-                "id": title_tag.attrib['href'].split('/')[2],
-                "poster": row.find('.//img').attrib['src'],
+                "id": title_tag.attrib.get('href').split('/')[2],
+                "poster": row.find('.//img').attrib.get('src'),
                 "title": title_tag.text,
-                "title_cast": title_tag.attrib['title'],
+                "title_cast": title_tag.attrib.get('title'),
                 "raiting": row.find_class('ratingColumn imdbRating').pop().text_content().strip()
             })
     return pop_media
