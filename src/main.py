@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.routing import APIRoute
 from fastapi.responses import UJSONResponse
 from .routes.media import mediaRouter
 
@@ -23,4 +24,11 @@ app.add_middleware(
 
 @app.get("/")
 async def read_root():
-    return {"Hello": "World"}
+    routes = []
+    for r in app.routes:
+        if type(r) == APIRoute:
+            routes.append(r.path)
+    return {
+        "paths": routes,
+        "Hello": "World"
+    }
