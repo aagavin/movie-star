@@ -1,29 +1,34 @@
 import csv
 import gzip
 import os
-from pathlib import Path
-import httpx
 import shutil
-import logging
+
+import httpx
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
 
 
-dirname = base_path = Path(__file__).parent
-
-shutil.copyfile(dirname / '../database/models.py', dirname / 'models.py')
-
-from models import Base, TitleBasic, TitleAkas, TitleCrew, TitlePrincipals, TitleRatings, TitleEpisode, NameBasics
+from src.database.models import (
+    Base,
+    TitleBasic,
+    TitleAkas,
+    TitleCrew,
+    TitlePrincipals,
+    TitleRatings,
+    TitleEpisode,
+    NameBasics
+)
 
 session = httpx.Client()
 
-engine = create_engine("sqlite:///./src/data.sqlite", echo=True, future=True)
-connection = engine.connect()
+engine = create_engine("sqlite:///data.sqlite", echo=True, future=True)
+try:
+    connection = engine.connect()
+except Exception as e:
+    print(e)
 
 
 Base.metadata.create_all(engine)
-
 
 datasets = [
     {
