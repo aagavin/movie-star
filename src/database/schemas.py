@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class TitleBasicBase(BaseModel):
     tconst: str
     titleType: str
@@ -11,8 +12,10 @@ class TitleBasicBase(BaseModel):
     runtimeMinutes: int
     genres: str
 
+
 class TitleBasicCreate(TitleBasicBase):
     pass
+
 
 class TitleBasic(TitleBasicBase):
     tconst: str
@@ -31,6 +34,7 @@ class TitleAkasBase(BaseModel):
     types: str
     attributes: str
     isOriginalTitle: str
+
 
 class TitleAkas(TitleAkasBase):
     titleId: str
