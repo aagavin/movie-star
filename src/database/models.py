@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
+
 class TitleBasic(Base):
     __tablename__ = 'titleBasic'
     tconst = Column(String, primary_key=True, index=True)
@@ -15,13 +16,13 @@ class TitleBasic(Base):
     runtimeMinutes = Column(Integer)
     genres = Column(String)
 
-
-    def __init__(self, tconst, titleType, primaryTitle, originalTitle, isAdult, startYear, endYear, runtimeMinutes, genres) -> None:
+    def __init__(self, tconst, titleType, primaryTitle, originalTitle, isAdult, startYear, endYear, runtimeMinutes,
+                 genres) -> None:
         self.tconst = tconst
         self.titleType = titleType
         self.primaryTitle = primaryTitle
         self.originalTitle = originalTitle
-        self.isAdult = isAdult = True if isAdult == 1 else False
+        self.isAdult = True if isAdult == 1 else False
         self.startYear = None if startYear == '\\N' else startYear
         self.endYear = None if endYear == '\\N' else endYear
         self.runtimeMinutes = runtimeMinutes
@@ -50,6 +51,7 @@ class TitleAkas(Base):
         self.attributes = attributes
         self.isOriginalTitle = True if isOriginalTitle == 1 else False
 
+
 class TitleCrew(Base):
     """
     Contains the director and writer information for all the titles in IMDb
@@ -59,6 +61,7 @@ class TitleCrew(Base):
     tconst = Column(String, ForeignKey('titleBasic.tconst'))
     directors = Column(String)
     writers = Column(String)
+
 
 class TitlePrincipals(Base):
     """
@@ -72,6 +75,7 @@ class TitlePrincipals(Base):
     category = Column(String)
     job = Column(String)
     characters = Column(String)
+
 
 class TitleRatings(Base):
     """
@@ -100,7 +104,7 @@ class TitleEpisode(Base):
         self.seasonNumber = seasonNumber
         self.episodeNumber = episodeNumber
 
-        
+
 class NameBasics(Base):
     """
     Contains the following information for names

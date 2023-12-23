@@ -1,4 +1,3 @@
-import imp
 import httpx
 from httpx import Response
 from html.parser import HTMLParser
@@ -7,6 +6,8 @@ from lxml import html
 from sqlalchemy.orm import Session
 
 from . import models
+
+headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0'}
 
 
 class ImdbMediaParser(HTMLParser):
@@ -33,29 +34,30 @@ class ImdbMediaParser(HTMLParser):
             self.description = text
             self.isDescription = False
 
+
 async def get_popular_media(url):
     pop_media = []
     async with httpx.AsyncClient() as client:
-        response: Response = await client.get(url)
+        response: Response = await client.get(url, headers=headers, follow_redirects=True)
         doc = html.fromstring(response.text)
-        pop_list = doc.find_class('lister-list').pop()
-        if pop_list.tag != 'tbody':
+        pop_list = doc.find_class('ipc-metadata-list-summary-item')
+        if not pop_list:
             return {}
-        
-        for row in pop_list.findall('tr'):
-            title_tag = row.find_class('titleColumn').pop().find('a')
+
+        for row in pop_list:
             pop_media.append({
-                "id": title_tag.attrib.get('href').split('/')[2],
+                "id": row.find_class('ipc-title-link-wrapper').pop().attrib.get('href').split('/')[2],
                 "poster": row.find('.//img').attrib.get('src'),
-                "title": title_tag.text,
-                "title_cast": title_tag.attrib.get('title'),
-                "raiting": row.find_class('ratingColumn imdbRating').pop().text_content().strip()
+                "title": row.find_class('ipc-title__text').pop().text_content(),
+                "rating": row.find_class('ipc-rating-star--base')[0].attrib.get('aria-label')
             })
     return pop_media
 
+
 def get_title_basic(db: Session, full: bool, tconst: str):
     if full:
-        return db.query(models.TitleAkas).filter(models.TitleAkas.titleId == tconst).order_by(models.TitleAkas.ordering.asc()).all()
+        return db.query(models.TitleAkas).filter(models.TitleAkas.titleId == tconst).order_by(
+            models.TitleAkas.ordering.asc()).all()
     return db.query(models.TitleBasic).filter(models.TitleBasic.tconst == tconst).first()
 
 
@@ -72,7 +74,8 @@ def get_title_ratings(db: Session, tconst: str):
 
 
 def get_title_episodes(db: Session, tconst: str):
-    return db.query(models.TitleEpisode).filter(models.TitleEpisode.parentTconst == tconst).order_by(models.TitleEpisode.seasonNumber).all()
+    return db.query(models.TitleEpisode).filter(models.TitleEpisode.parentTconst == tconst).order_by(
+        models.TitleEpisode.seasonNumber).all()
 
 
 def get_name_basic(db: Session, nconst: Union[list, str]):
